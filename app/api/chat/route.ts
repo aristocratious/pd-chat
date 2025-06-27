@@ -1,27 +1,13 @@
-import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
-import { getAllModels } from "@/lib/models"
-import { getProviderForModel } from "@/lib/openproviders/provider-map"
-import type { ProviderWithoutOllama } from "@/lib/user-keys"
-import { Attachment } from "@ai-sdk/ui-utils"
-import { Message as MessageAISDK, streamText, ToolSet } from "ai"
-import {
-  incrementMessageCount,
-  logUserMessage,
-  storeAssistantMessage,
-  validateAndTrackUsage,
-} from "./api"
-import { createErrorResponse, extractErrorMessage } from "./utils"
+import { sendChatToN8N, saveChatMessage, type ChatMessage } from "@/lib/n8n-api"
 
 export const maxDuration = 60
 
 type ChatRequest = {
-  messages: MessageAISDK[]
+  messages: any[]
   chatId: string
   userId: string
   model: string
-  isAuthenticated: boolean
-  systemPrompt: string
-  enableSearch: boolean
+  systemPrompt?: string
 }
 
 export async function POST(req: Request) {
@@ -31,9 +17,7 @@ export async function POST(req: Request) {
       chatId,
       userId,
       model,
-      isAuthenticated,
       systemPrompt,
-      enableSearch,
     } = (await req.json()) as ChatRequest
 
     if (!messages || !chatId || !userId) {
@@ -43,80 +27,62 @@ export async function POST(req: Request) {
       )
     }
 
-    const supabase = await validateAndTrackUsage({
-      userId,
-      model,
-      isAuthenticated,
-    })
+    // Get the last user message content
+    const lastMessage = messages[messages.length - 1]
+    const userMessageContent = lastMessage?.content || ""
+    
+    // Create a session ID from userId and chatId for n8n
+    const sessionId = `${userId}_${chatId}`
+    
+    // Save user message to storage
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: userMessageContent,
+      timestamp: new Date().toISOString(),
+      id: Math.random().toString(36).substr(2, 9)
+    }
+    saveChatMessage(chatId, userMessage)
 
-    // Increment message count for successful validation
-    if (supabase) {
-      await incrementMessageCount({ supabase, userId })
+    // Send to n8n webhook with simplified format
+    const n8nResponse = await sendChatToN8N(userMessageContent, sessionId)
+
+    if (!n8nResponse.success) {
+      throw new Error(n8nResponse.error || "N8N webhook failed")
     }
 
-    const userMessage = messages[messages.length - 1]
-
-    if (supabase && userMessage?.role === "user") {
-      await logUserMessage({
-        supabase,
-        userId,
-        chatId,
-        content: userMessage.content,
-        attachments: userMessage.experimental_attachments as Attachment[],
-        model,
-        isAuthenticated,
-      })
+    // Save assistant response
+    const assistantMessage: ChatMessage = {
+      role: "assistant",
+      content: n8nResponse.message,
+      timestamp: new Date().toISOString(),
+      id: Math.random().toString(36).substr(2, 9)
     }
+    
+    saveChatMessage(chatId, assistantMessage)
 
-    const allModels = await getAllModels()
-    const modelConfig = allModels.find((m) => m.id === model)
-
-    if (!modelConfig || !modelConfig.apiSdk) {
-      throw new Error(`Model ${model} not found`)
-    }
-
-    const effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT
-
-    let apiKey: string | undefined
-    if (isAuthenticated && userId) {
-      const { getEffectiveApiKey } = await import("@/lib/user-keys")
-      const provider = getProviderForModel(model)
-      apiKey =
-        (await getEffectiveApiKey(userId, provider as ProviderWithoutOllama)) ||
-        undefined
-    }
-
-    const result = streamText({
-      model: modelConfig.apiSdk(apiKey, { enableSearch }),
-      system: effectiveSystemPrompt,
-      messages: messages,
-      tools: {} as ToolSet,
-      maxSteps: 10,
-      onError: (err: unknown) => {
-        console.error("Streaming error occurred:", err)
-        // Don't set streamError anymore - let the AI SDK handle it through the stream
-      },
-
-      onFinish: async ({ response }) => {
-        if (supabase) {
-          await storeAssistantMessage({
-            supabase,
-            chatId,
-            messages:
-              response.messages as unknown as import("@/app/types/api.types").Message[],
-          })
-        }
+    // Return a simple streaming response that the frontend can parse
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      start(controller) {
+        // Send the message content in the AI SDK format
+        const content = `0:"${n8nResponse.message.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`
+        controller.enqueue(encoder.encode(content))
+        
+        // Send finish message
+        const finish = `d:{"finishReason":"stop","usage":{"promptTokens":0,"completionTokens":0}}\n`
+        controller.enqueue(encoder.encode(finish))
+        
+        controller.close()
       },
     })
 
-    return result.toDataStreamResponse({
-      sendReasoning: true,
-      sendSources: true,
-      getErrorMessage: (error: unknown) => {
-        console.error("Error forwarded to client:", error)
-        return extractErrorMessage(error)
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Vercel-AI-Data-Stream': 'v1',
       },
     })
+
   } catch (err: unknown) {
     console.error("Error in /api/chat:", err)
     const error = err as {
@@ -125,6 +91,16 @@ export async function POST(req: Request) {
       statusCode?: number
     }
 
-    return createErrorResponse(error)
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || "Internal server error" 
+      }),
+      { 
+        status: error.statusCode || 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
   }
 }

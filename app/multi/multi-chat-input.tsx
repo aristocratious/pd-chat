@@ -101,10 +101,15 @@ export function MultiChatInput({
                 isUserAuthenticated={isUserAuthenticated}
                 model={selectedModelIds[0] || "gpt-4.1-nano"} // Use first selected model for file upload validation
               />
-              <MultiModelSelector
-                selectedModelIds={selectedModelIds}
-                setSelectedModelIds={onSelectedModelIdsChange}
-              />
+              {/* Multi-model selection disabled - using N8N backend */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full bg-secondary/50 cursor-default min-w-[140px]"
+                disabled
+              >
+                <span className="text-sm">N8N Assistant</span>
+              </Button>
             </div>
             <PromptInputAction
               tooltip={status === "streaming" ? "Stop" : "Send"}

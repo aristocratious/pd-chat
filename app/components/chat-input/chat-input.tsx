@@ -171,12 +171,15 @@ export function ChatInput({
                 isUserAuthenticated={isUserAuthenticated}
                 model={selectedModel}
               />
-              <ModelSelector
-                selectedModelId={selectedModel}
-                setSelectedModelId={onSelectModel}
-                isUserAuthenticated={isUserAuthenticated}
-                className="rounded-full"
-              />
+              {/* Model selection disabled - using N8N backend */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full bg-secondary/50 cursor-default"
+                disabled
+              >
+                <span className="text-sm">N8N Assistant</span>
+              </Button>
               {hasSearchSupport ? (
                 <ButtonSearch
                   isSelected={enableSearch}
