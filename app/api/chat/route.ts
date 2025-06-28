@@ -2,6 +2,19 @@ import { sendChatToN8N, saveChatMessage, type ChatMessage } from "@/lib/n8n-api"
 
 export const maxDuration = 60
 
+// Handle CORS preflight requests
+export async function OPTIONS(request: Request) {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-csrf-token',
+      'Access-Control-Max-Age': '86400',
+    },
+  })
+}
+
 type ChatRequest = {
   messages: any[]
   chatId: string
@@ -12,6 +25,13 @@ type ChatRequest = {
 
 export async function POST(req: Request) {
   try {
+    // Add debugging for production
+    console.log('Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasN8NUrl: !!process.env.N8N_WEBHOOK_URL,
+      hasCSRF: !!process.env.CSRF_SECRET
+    })
+
     const {
       messages,
       chatId,
@@ -91,14 +111,28 @@ export async function POST(req: Request) {
       statusCode?: number
     }
 
+    // Add more detailed error info for debugging
+    const errorDetails = {
+      error: error.message || "Internal server error",
+      ...(process.env.NODE_ENV === 'development' && {
+        details: err,
+        stack: (err as Error)?.stack,
+        env: {
+          hasN8NUrl: !!process.env.N8N_WEBHOOK_URL,
+          hasCSRF: !!process.env.CSRF_SECRET
+        }
+      })
+    }
+
     return new Response(
-      JSON.stringify({ 
-        error: error.message || "Internal server error" 
-      }),
+      JSON.stringify(errorDetails),
       { 
         status: error.statusCode || 500,
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
         },
       }
     )

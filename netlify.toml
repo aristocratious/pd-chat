@@ -1,0 +1,24 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  # Set Node.js version
+  NODE_VERSION = "18"
+  # Disable Next.js telemetry in build
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[functions]
+  # Set runtime for serverless functions
+  node_bundler = "nft"
+  
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin" 

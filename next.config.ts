@@ -5,10 +5,10 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 })
 
 const nextConfig: NextConfig = withBundleAnalyzer({
-  output: 'standalone',
+  // Remove 'standalone' output for Netlify compatibility
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
-    nodeMiddleware: true,
+    // Remove nodeMiddleware for Netlify compatibility
   },
   images: {
     remotePatterns: [
