@@ -2,6 +2,7 @@
 
 import XIcon from "@/components/icons/x"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useUser } from "@/lib/user-store/provider"
-import { GithubLogoIcon } from "@phosphor-icons/react"
+import { GithubLogoIcon, Gear } from "@phosphor-icons/react"
 import { AppInfoTrigger } from "./app-info/app-info-trigger"
 import { FeedbackTrigger } from "./feedback/feedback-trigger"
 import { SettingsTrigger } from "./settings/settings-trigger"
@@ -23,21 +24,18 @@ import { SettingsTrigger } from "./settings/settings-trigger"
 export function UserMenu() {
   const { user } = useUser()
 
-  if (!user) return null
-
   return (
     // fix shadcn/ui / radix bug when dialog into dropdown menu
     <DropdownMenu modal={false}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <DropdownMenuTrigger>
-            <Avatar className="bg-background hover:bg-muted">
-              <AvatarImage src={user?.profile_image ?? undefined} />
-              <AvatarFallback>{user?.display_name?.charAt(0)}</AvatarFallback>
-            </Avatar>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-8">
+              <Gear className="size-5" />
+            </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>Profile</TooltipContent>
+        <TooltipContent>Menu</TooltipContent>
       </Tooltip>
       <DropdownMenuContent
         className="w-56"
@@ -45,13 +43,7 @@ export function UserMenu() {
         forceMount
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        <DropdownMenuItem className="flex flex-col items-start gap-0 no-underline hover:bg-transparent focus:bg-transparent">
-          <span>{user?.display_name}</span>
-          <span className="text-muted-foreground max-w-full truncate">
-            {user?.email}
-          </span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {/* User name and email removed for N8N backend */}
         <SettingsTrigger />
         <FeedbackTrigger />
         <AppInfoTrigger />

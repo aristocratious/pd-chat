@@ -159,7 +159,7 @@ export function ChatInput({
         >
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea
-            placeholder="Ask Zola"
+            placeholder="Ask me and I'll guide you through it."
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
@@ -178,7 +178,7 @@ export function ChatInput({
                 className="rounded-full bg-secondary/50 cursor-default"
                 disabled
               >
-                <span className="text-sm">N8N Assistant</span>
+                <span className="text-sm">Plan Divino Assistant</span>
               </Button>
               {hasSearchSupport ? (
                 <ButtonSearch

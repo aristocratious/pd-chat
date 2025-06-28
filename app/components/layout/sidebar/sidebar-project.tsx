@@ -19,16 +19,25 @@ export function SidebarProject() {
   const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ["projects"],
     queryFn: async () => {
-      const response = await fetch("/api/projects")
-      if (!response.ok) {
-        throw new Error("Failed to fetch projects")
+      try {
+        const response = await fetch("/api/projects")
+        if (!response.ok) {
+          // If projects API doesn't exist (N8N backend), return empty array
+          return []
+        }
+        return response.json()
+      } catch (error) {
+        // If fetch fails (N8N backend), return empty array
+        console.log("Projects API not available, using N8N backend")
+        return []
       }
-      return response.json()
     },
   })
 
   return (
     <div className="mb-5">
+      {/* New Project button hidden for N8N backend */}
+      {/* 
       <button
         className="hover:bg-accent/80 hover:text-foreground text-primary group/new-chat relative inline-flex w-full items-center rounded-md bg-transparent px-2 py-2 text-sm transition-colors"
         type="button"
@@ -39,16 +48,18 @@ export function SidebarProject() {
           New project
         </div>
       </button>
+      */}
 
       {isLoading ? null : (
         <div className="space-y-1">
-          {projects.map((project) => (
+          {Array.isArray(projects) && projects.map((project) => (
             <SidebarProjectItem key={project.id} project={project} />
           ))}
         </div>
       )}
 
-      <DialogCreateProject isOpen={isDialogOpen} setIsOpen={setIsDialogOpen} />
+      {/* Dialog hidden for N8N backend */}
+      {/* <DialogCreateProject isOpen={isDialogOpen} setIsOpen={setIsDialogOpen} /> */}
     </div>
   )
 }

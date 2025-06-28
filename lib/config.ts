@@ -6,6 +6,10 @@ import {
   Notepad,
   PaintBrush,
   Sparkle,
+  Gear,
+  Heart,
+  Target,
+  Users,
 } from "@phosphor-icons/react/dist/ssr"
 
 export const NON_AUTH_DAILY_MESSAGE_LIMIT = 5
@@ -29,93 +33,108 @@ export const MODEL_DEFAULT = "gpt-4.1-nano"
 export const APP_NAME = "Zola"
 export const APP_DOMAIN = "https://zola.chat"
 
+export const IS_DEMO = process.env.NEXT_PUBLIC_IS_DEMO === "true"
+
+export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || ""
+
 export const SUGGESTIONS = [
   {
-    label: "Summary",
-    highlight: "Summarize",
-    prompt: `Summarize`,
+    label: "AI Strategy",
+    highlight: "AI strategy",
+    prompt: `AI strategy`,
     items: [
-      "Summarize the French Revolution",
-      "Summarize the plot of Inception",
-      "Summarize World War II in 5 sentences",
-      "Summarize the benefits of meditation",
+      "How can AI amplify human capabilities without replacing human judgment?",
+      "What does it mean to implement values-first technology in organizations?",
+      "How do we preserve human agency while automating processes?",
+      "What questions should leaders ask before implementing AI solutions?",
+      "How can AI help with meaningful work instead of just efficiency?",
+      "What are the risks of AI implementation without human values?",
     ],
-    icon: Notepad,
+    icon: Target,
   },
   {
-    label: "Code",
-    highlight: "Help me",
-    prompt: `Help me`,
+    label: "Organizational Development",
+    highlight: "Organizational development",
+    prompt: `Organizational development`,
     items: [
-      "Help me write a function to reverse a string in JavaScript",
-      "Help me create a responsive navbar in HTML/CSS",
-      "Help me write a SQL query to find duplicate emails",
-      "Help me convert this Python function to JavaScript",
+      "How can we evolve toward distributed decision-making with AI support?",
+      "What does self-management look like in AI-enabled organizations?",
+      "How to create environments where people bring their whole selves to work",
+      "What are the stages of conscious organizational evolution?",
+      "How do purpose-driven organizations approach AI implementation differently?",
+      "What does wholeness at work look like in an AI-enabled organization?",
     ],
-    icon: Code,
+    icon: Users,
   },
   {
-    label: "Design",
-    highlight: "Design",
-    prompt: `Design`,
+    label: "Human-AI Partnership",
+    highlight: "Human-AI partnership",
+    prompt: `Human-AI partnership`,
     items: [
-      "Design a color palette for a tech blog",
-      "Design a UX checklist for mobile apps",
-      "Design 5 great font pairings for a landing page",
-      "Design better CTAs with useful tips",
+      "What are the key principles of human-AI partnership?",
+      "How to design AI systems that augment rather than replace humans",
+      "What skills are needed for effective human-AI collaboration?",
+      "What makes humans irreplaceable in an AI-enabled world?",
+      "How do I prepare for work in a self-managing organization?",
+      "What inner development is needed to navigate AI transformation?",
     ],
-    icon: PaintBrush,
+    icon: Heart,
   },
   {
-    label: "Research",
-    highlight: "Research",
-    prompt: `Research`,
+    label: "Purpose & Meaning",
+    highlight: "Purpose and meaning",
+    prompt: `Purpose and meaning`,
     items: [
-      "Research the pros and cons of remote work",
-      "Research the differences between Apple Vision Pro and Meta Quest",
-      "Research best practices for password security",
-      "Research the latest trends in renewable energy",
-    ],
-    icon: BookOpenText,
-  },
-  {
-    label: "Get inspired",
-    highlight: "Inspire me",
-    prompt: `Inspire me`,
-    items: [
-      "Inspire me with a beautiful quote about creativity",
-      "Inspire me with a writing prompt about solitude",
-      "Inspire me with a poetic way to start a newsletter",
-      "Inspire me by describing a peaceful morning in nature",
-    ],
-    icon: Sparkle,
-  },
-  {
-    label: "Think deeply",
-    highlight: "Reflect on",
-    prompt: `Reflect on`,
-    items: [
-      "Reflect on why we fear uncertainty",
-      "Reflect on what makes a conversation meaningful",
-      "Reflect on the concept of time in a simple way",
-      "Reflect on what it means to live intentionally",
+      "How do I discover my purpose and align it with AI-enhanced work?",
+      "What does meaningful work look like with AI assistance?",
+      "How to maintain human connection in AI-enhanced organizations",
+      "What is evolutionary purpose and how does it guide AI decisions?",
+      "How can AI support regenerative impact rather than just profit?",
+      "What's the future of work when AI handles routine cognitive tasks?",
     ],
     icon: Brain,
   },
   {
-    label: "Learn gently",
+    label: "Implementation",
+    highlight: "AI implementation",
+    prompt: `AI implementation`,
+    items: [
+      "How to create an AI strategy that aligns with organizational purpose",
+      "What are the principles of values-first technology implementation?",
+      "How to evaluate AI solutions for purpose-driven organizations",
+      "What questions to ask before implementing AI in your organization",
+      "How do we measure success in AI implementations beyond efficiency?",
+      "What makes an organization ready for conscious AI transformation?",
+    ],
+    icon: Gear,
+  },
+  {
+    label: "Learn Gently",
     highlight: "Explain",
     prompt: `Explain`,
     items: [
-      "Explain quantum physics like I'm 10",
-      "Explain stoicism in simple terms",
-      "Explain how a neural network works",
-      "Explain the difference between AI and AGI",
+      "Explain human-AI partnership in simple terms",
+      "Explain what self-management means in organizations",
+      "Explain the difference between AI automation and AI augmentation",
+      "Explain how AI can preserve meaning at work",
+      "Explain distributed decision-making with examples",
+      "Explain the concept of evolutionary purpose",
     ],
     icon: Lightbulb,
   },
 ]
 
-export const SYSTEM_PROMPT_DEFAULT = `You are Zola, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don't try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`
+export const SYSTEM_PROMPT_DEFAULT = `You are an AI assistant focused on helping organizations implement AI that amplifies human capabilities while preserving meaningful work. Your expertise lies in:
+
+- Human-AI partnership and collaboration
+- Values-first technology implementation
+- Self-managing organizational structures
+- Purpose-driven AI transformation
+- Distributed decision-making with AI support
+- Preserving human agency in automated processes
+
+Your tone is thoughtful, clear, and human-centered. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers that honor both technological capability and human meaning. When needed, you ask good questions to help users think clearly about their AI implementation journey.
+
+You're here to help users navigate the intersection of AI implementation, individual purpose alignment, and organizational transformation toward self-managing, human-centered structures. You don't try to impress—you aim to clarify and support conscious evolution.`
 
 export const MESSAGE_MAX_LENGTH = 10000
