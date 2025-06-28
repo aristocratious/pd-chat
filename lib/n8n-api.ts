@@ -24,9 +24,12 @@ export interface ChatResponse {
   message: string
   success: boolean
   error?: string
+  responseTime?: number // Add performance tracking
 }
 
 export async function sendChatToN8N(userMessage: string, sessionId: string): Promise<ChatResponse> {
+  const startTime = Date.now()
+  
   try {
     // Format the request to match your existing n8n workflow
     const n8nPayload: N8NRequest = {
@@ -34,8 +37,8 @@ export async function sendChatToN8N(userMessage: string, sessionId: string): Pro
       language: "en",
       timestamp: new Date().toISOString(),
       sessionId: sessionId,
-      userAgent: "Zola.Chat Frontend",
-      referrer: "zola-chat"
+      userAgent: "Plan Divino Chat",
+      referrer: "plan-divino-chat"
     }
 
     // Create an AbortController for timeout
@@ -43,36 +46,57 @@ export async function sendChatToN8N(userMessage: string, sessionId: string): Pro
     const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
 
     try {
+      console.log(`🚀 Sending request to N8N at ${startTime}`)
+      
       const response = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'Plan Divino Chat/1.0',
+          'Connection': 'keep-alive',
+          'Cache-Control': 'no-cache',
+          // Add headers to optimize connection
+          'Accept-Encoding': 'gzip, deflate',
         },
         body: JSON.stringify(n8nPayload),
         signal: controller.signal,
+        // Add performance optimizations
+        keepalive: true,
       })
 
       clearTimeout(timeoutId) // Clear timeout if request completes
+      const responseTime = Date.now() - startTime
+      
+      console.log(`⚡ N8N response received in ${responseTime}ms`)
 
       if (!response.ok) {
-        throw new Error(`N8N webhook error: ${response.statusText}`)
+        throw new Error(`N8N webhook error: ${response.status} ${response.statusText}`)
       }
 
       const data = await response.json()
+      console.log(`✅ N8N total time: ${responseTime}ms`)
+      
       return {
         message: data.response || data.message || '',
         success: data.success !== false, // Handle your webhook's success field
+        responseTime,
       }
     } catch (fetchError) {
       clearTimeout(timeoutId) // Clear timeout on error
+      const responseTime = Date.now() - startTime
       
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.log(`⏰ N8N timeout after ${responseTime}ms`)
         throw new Error('N8N webhook timeout - response took too long')
       }
+      
+      console.log(`❌ N8N error after ${responseTime}ms:`, fetchError)
       throw fetchError
     }
   } catch (error) {
-    console.error('N8N API Error:', error)
+    const responseTime = Date.now() - startTime
+    console.error(`🔥 N8N API Error after ${responseTime}ms:`, error)
     
     // Return a fallback response instead of complete failure
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -84,6 +108,27 @@ export async function sendChatToN8N(userMessage: string, sessionId: string): Pro
         : "I'm having trouble processing your request right now. Please try again.",
       success: false,
       error: errorMessage,
+      responseTime,
+    }
+  }
+}
+
+// Add a function to test N8N performance
+export async function testN8NPerformance(): Promise<{ responseTime: number; success: boolean }> {
+  const startTime = Date.now()
+  try {
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'HEAD', // Just test connectivity
+      signal: AbortSignal.timeout(3000), // 3 second timeout for ping
+    })
+    return {
+      responseTime: Date.now() - startTime,
+      success: response.ok,
+    }
+  } catch {
+    return {
+      responseTime: Date.now() - startTime,
+      success: false,
     }
   }
 }
