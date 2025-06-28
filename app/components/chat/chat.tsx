@@ -218,7 +218,7 @@ export function Chat() {
             }}
           >
             <h1 className="mb-6 text-3xl font-medium tracking-tight">
-              What&apos;s on your mind?
+              What would liberate you to focus on meaningful work?
             </h1>
           </motion.div>
         ) : (
