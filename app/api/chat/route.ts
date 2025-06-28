@@ -1,6 +1,7 @@
 import { sendChatToN8N, saveChatMessage, type ChatMessage } from "@/lib/n8n-api"
 
-export const maxDuration = 60
+export const maxDuration = 30 // Reduced for better compatibility with hosting platforms
+export const runtime = 'nodejs' // Ensure we're using the right runtime
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: Request) {
@@ -66,14 +67,15 @@ export async function POST(req: Request) {
     // Send to n8n webhook with simplified format
     const n8nResponse = await sendChatToN8N(userMessageContent, sessionId)
 
-    if (!n8nResponse.success) {
-      throw new Error(n8nResponse.error || "N8N webhook failed")
-    }
+    // Even if N8N fails, we should return a response rather than throw an error
+    const responseMessage = n8nResponse.success 
+      ? n8nResponse.message 
+      : (n8nResponse.message || "I'm experiencing some technical difficulties. Please try again.")
 
     // Save assistant response
     const assistantMessage: ChatMessage = {
       role: "assistant",
-      content: n8nResponse.message,
+      content: responseMessage,
       timestamp: new Date().toISOString(),
       id: Math.random().toString(36).substr(2, 9)
     }
@@ -85,7 +87,7 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       start(controller) {
         // Send the message content in the AI SDK format
-        const content = `0:"${n8nResponse.message.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`
+        const content = `0:"${responseMessage.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"\n`
         controller.enqueue(encoder.encode(content))
         
         // Send finish message

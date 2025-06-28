@@ -38,29 +38,52 @@ export async function sendChatToN8N(userMessage: string, sessionId: string): Pro
       referrer: "zola-chat"
     }
 
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(n8nPayload),
-    })
+    // Create an AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
 
-    if (!response.ok) {
-      throw new Error(`N8N webhook error: ${response.statusText}`)
-    }
+    try {
+      const response = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(n8nPayload),
+        signal: controller.signal,
+      })
 
-    const data = await response.json()
-    return {
-      message: data.response || data.message || '',
-      success: data.success !== false, // Handle your webhook's success field
+      clearTimeout(timeoutId) // Clear timeout if request completes
+
+      if (!response.ok) {
+        throw new Error(`N8N webhook error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return {
+        message: data.response || data.message || '',
+        success: data.success !== false, // Handle your webhook's success field
+      }
+    } catch (fetchError) {
+      clearTimeout(timeoutId) // Clear timeout on error
+      
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        throw new Error('N8N webhook timeout - response took too long')
+      }
+      throw fetchError
     }
   } catch (error) {
     console.error('N8N API Error:', error)
+    
+    // Return a fallback response instead of complete failure
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const isTimeout = errorMessage.includes('timeout')
+    
     return {
-      message: '',
+      message: isTimeout 
+        ? "I apologize, but I'm experiencing some technical difficulties right now. Please try your question again in a moment."
+        : "I'm having trouble processing your request right now. Please try again.",
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
     }
   }
 }
