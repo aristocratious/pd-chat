@@ -17,10 +17,10 @@ export async function OPTIONS() {
 
 export async function GET(
   req: Request,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
-    const { jobId } = params
+    const { jobId } = await params
 
     if (!jobId) {
       return new Response(
