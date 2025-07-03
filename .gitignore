@@ -52,3 +52,7 @@ bun.lockb
 bun.lock
 
 /.cursor
+
+# N8N Workflow files (contain sensitive configuration)
+Consulting_prestart_V4.1.json
+*.n8n.json

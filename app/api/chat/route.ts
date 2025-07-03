@@ -1,10 +1,10 @@
-import { sendChatToN8N, saveChatMessage, type ChatMessage } from "@/lib/n8n-api"
+import { createAsyncChatJob, saveChatMessage, type ChatMessage } from "@/lib/n8n-api"
 
 export const maxDuration = 30 // Reduced for better compatibility with hosting platforms
 export const runtime = 'nodejs' // Ensure we're using the right runtime
 
 // Handle CORS preflight requests
-export async function OPTIONS(request: Request) {
+export async function OPTIONS() {
   return new Response(null, {
     status: 200,
     headers: {
@@ -17,11 +17,12 @@ export async function OPTIONS(request: Request) {
 }
 
 type ChatRequest = {
-  messages: any[]
+  messages: Array<{ role: string; content: string }>
   chatId: string
   userId: string
   model: string
   systemPrompt?: string
+  async?: boolean // Optional flag to enable async mode
 }
 
 export async function POST(req: Request) {
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       userId,
       model,
       systemPrompt,
+      async: useAsync = false, // Default to sync for backward compatibility
     } = (await req.json()) as ChatRequest
 
     if (!messages || !chatId || !userId) {
@@ -64,7 +66,36 @@ export async function POST(req: Request) {
     }
     saveChatMessage(chatId, userMessage)
 
-    // Send to n8n webhook with simplified format
+    // ASYNC MODE: Create job and return immediately
+    if (useAsync) {
+      // Construct callback URL dynamically based on request
+      const host = req.headers.get('host')
+      const protocol = req.headers.get('x-forwarded-proto') || 
+                      (host?.includes('localhost') ? 'http' : 'https')
+      const callbackUrl = `${protocol}://${host}/api/chat/callback`
+      
+      console.log(`📞 Dynamic callback URL: ${callbackUrl}`)
+      
+      const { jobId, success } = await createAsyncChatJob(userMessageContent, sessionId, callbackUrl)
+      
+      return new Response(
+        JSON.stringify({ 
+          jobId, 
+          success,
+          status: 'processing',
+          message: 'Request submitted for processing'
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      )
+    }
+
+    // SYNC MODE: Original behavior for backward compatibility  
+    const { sendChatToN8N } = await import("@/lib/n8n-api")
     const n8nResponse = await sendChatToN8N(userMessageContent, sessionId)
 
     // Even if N8N fails, we should return a response rather than throw an error
