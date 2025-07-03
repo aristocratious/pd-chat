@@ -37,8 +37,8 @@ export async function sendChatToN8N(userMessage: string, sessionId: string): Pro
       language: "en",
       timestamp: new Date().toISOString(),
       sessionId: sessionId,
-      userAgent: "Plan Divino Chat",
-      referrer: "plan-divino-chat"
+      userAgent: "SynchroLabs Chat",
+      referrer: "synchrolabs-chat"
     }
 
     // Create an AbortController for timeout
@@ -53,7 +53,7 @@ export async function sendChatToN8N(userMessage: string, sessionId: string): Pro
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'User-Agent': 'Plan Divino Chat/1.0',
+          'User-Agent': 'SynchroLabs Chat/1.0',
           'Connection': 'keep-alive',
           'Cache-Control': 'no-cache',
           // Add headers to optimize connection

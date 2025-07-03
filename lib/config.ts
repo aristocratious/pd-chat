@@ -30,8 +30,8 @@ export const FREE_MODELS_IDS = [
 
 export const MODEL_DEFAULT = "gpt-4.1-nano"
 
-export const APP_NAME = "Plan Divino Chat"
-export const APP_DOMAIN = "https://zola.chat"
+export const APP_NAME = "SynchroLabs Chat"
+export const APP_DOMAIN = "https://synchrolabs.ai/chat"
 
 export const IS_DEMO = process.env.NEXT_PUBLIC_IS_DEMO === "true"
 

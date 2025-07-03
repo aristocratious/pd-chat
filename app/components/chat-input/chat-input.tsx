@@ -178,7 +178,7 @@ export function ChatInput({
                 className="rounded-full bg-secondary/50 cursor-default"
                 disabled
               >
-                <span className="text-sm">Plan Divino Assistant</span>
+                <span className="text-sm">SynchroLabs Assistant</span>
               </Button>
               {hasSearchSupport ? (
                 <ButtonSearch
